@@ -1,11 +1,5 @@
-# E = 2.1e5
-# nu = 0.3
-# K = '${fparse E/3/(1-2*nu)}'
-# G = '${fparse E/2/(1+nu)}'
-
 Gc = 2.7
 l = 0.02
-neml2_input = PFF_main
 
 [MultiApps]
   [fracture]
@@ -35,6 +29,10 @@ neml2_input = PFF_main
   displacements = 'disp_x disp_y'
 []
 
+[Problem]
+  extra_tag_vectors = 'ref'
+[]
+
 [Mesh]
   [gen]
     type = GeneratedMeshGenerator
@@ -53,32 +51,30 @@ neml2_input = PFF_main
   construct_side_list_from_node_list = true
 []
 
-# [Adaptivity]
-#   marker = marker
-#   initial_marker = marker
-#   initial_steps = 2
-#   stop_time = 0
-#   max_h_level = 3
-#   [Markers]
-#     [marker]
-#       type = BoxMarker
-#       bottom_left = '0.4 0 0'
-#       top_right = '1 0.05 0'
-#       outside = DO_NOTHING
-#       inside = REFINE
-#     []
-#   []
-# []
-
-# [Variables]
-#   [disp_x]
-#   []
-#   [disp_y]
-#   []
-# []
+[Adaptivity]
+  marker = marker
+  initial_marker = marker
+  initial_steps = 2
+  stop_time = 0
+  max_h_level = 2
+  [Markers]
+    [marker]
+      type = BoxMarker
+      bottom_left = '0.4 0 0'
+      top_right = '1 0.05 0'
+      outside = DO_NOTHING
+      inside = REFINE
+    []
+  []
+[]
 
 [AuxVariables]
   [fy]
+    [AuxKernel]
+      type = TagVectorAux
+      v = 'disp_y'
+      vector_tag = 'ref'
+    []
   []
   [d]
   []
@@ -92,35 +88,6 @@ neml2_input = PFF_main
   []
 []
 
-# [Kernels]
-#   [solid_x]
-#     type = StressDivergenceTensors
-#     variable = disp_x
-#     component = 0
-#   []
-#   [solid_y]
-#     type = StressDivergenceTensors
-#     variable = disp_y
-#     component = 1
-#     save_in = fy
-#   []
-# []
-
-# [Physics]
-#   [SolidMechanics]
-#     [QuasiStatic]
-#       [all]
-#         strain = SMALL
-#         # new_system = true
-#         add_variables = true
-#         # formulation = TOTAL
-#         # volumetric_locking_correction = true
-#         # use_automatic_differentiation = true
-#       []
-#     []
-#   []
-# []
-
 [Physics]
   [SolidMechanics]
     [QuasiStatic]
@@ -128,8 +95,7 @@ neml2_input = PFF_main
         strain = SMALL
         new_system = true
         add_variables = true
-        # formulation = TOTAL
-        # volumetric_locking_correction = true
+        extra_vector_tags = 'ref'
       []
     []
   []
@@ -157,16 +123,15 @@ neml2_input = PFF_main
 []
 
 [NEML2]
-  input = 'models/${neml2_input}.i'
+  input = 'constitutive.i'
   verbose = true
+  device = 'cpu'
   [all]
-    model = 'model_main'
-    verbose = true
-    device = 'cpu'
+    model = 'mechanics'
 
     moose_input_types = 'MATERIAL VARIABLE'
     moose_inputs = 'neml2_strain d'
-    neml2_inputs = 'forces/E state/d'
+    neml2_inputs = 'forces/E forces/d'
 
     moose_output_types = 'MATERIAL MATERIAL'
     moose_outputs = 'neml2_stress psie_active'
@@ -196,10 +161,7 @@ neml2_input = PFF_main
     type = NodalSum
     variable = fy
     boundary = top
-  []
-  [psie_val]
-    type = ElementAverageMaterialProperty
-    mat_prop = psie_active
+    execute_on = 'TIMESTEP_END'
   []
 []
 
@@ -215,7 +177,9 @@ neml2_input = PFF_main
   nl_abs_tol = 1e-10
 
   dt = 1e-4
-  end_time = 2
+  end_time = 0.01
+
+  reuse_preconditioner = true
 
   fixed_point_max_its = 20
   accept_on_max_fixed_point_iteration = true
@@ -226,5 +190,4 @@ neml2_input = PFF_main
 [Outputs]
   exodus = true
   print_linear_residuals = false
-  file_base = neml2_integration_frac_finer
 []

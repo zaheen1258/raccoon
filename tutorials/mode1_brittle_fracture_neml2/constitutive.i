@@ -3,22 +3,19 @@
 # []
 
 [Tensors]
-  [p]
-    type = Scalar
-    values = 2
-  []
   [GcbylbyCo]
     type = Scalar
     values = 67.5 # Gc/l/Co with Gc = 2.7 N/m, l = 0.02 mm, Co = 2
   []
 []
 
-[Models] # Computes psi_active to send to the fracture app and degraded stress for output with new phase value 
-   [degrade]
+[Models]
+  ####################################
+  [degrade]
     type = PowerDegradationFunction
-    phase = 'state/d'
+    phase = 'forces/d'
     degradation = 'state/g'
-    power = 'p'
+    power = '2'
   []
   [sed0]
     type = LinearIsotropicStrainEnergyDensity
@@ -32,63 +29,48 @@
     from_var = 'state/g state/psie0'
     to_var = 'state/psie'
   []
-  [energy] # this guy maps from (strain, d) -> degraded energy
+  [energy1] # this guy maps from strain -> degraded energy
     type = ComposedModel
     models = 'degrade sed0 sed'
-    # additional_outputs = 'state/psie0'
   []
   [stress]
     type = Normality
-    model = 'energy'
+    model = 'energy1'
     function = 'state/psie'
     from = 'forces/E'
     to = 'state/S'
   []
-  [model_main]
+  [mechanics]
     type = ComposedModel
     models = 'stress sed0'
-    additional_outputs = 'state/psie0'
   []
   ####################################
-  [sed_frac]
-    type = ScalarMultiplication
-    from_var = 'state/g state/psie0'
-    to_var = 'state/psie'
-  []
-  # crack geometric function: alpha
   [cracked]
     type = CrackGeometricFunctionAT2
-    phase = 'state/d'
+    phase = 'forces/d'
     crack = 'state/alpha'
   []
-  # total energy
+  [sed2]
+    type = ScalarMultiplication
+    from_var = 'state/g forces/psie0'
+    to_var = 'state/psie'
+  []
   [sum]
     type = ScalarLinearCombination
     from_var = 'state/alpha state/psie'
     to_var = 'state/psi'
-    coefficients = 'GcbylbyCo 1'
+    # Gc/l/c0 = 67.5 with Gc = 2.7 N/m, l = 0.02 mm, c0 = 2
+    coefficients = '67.5 1'
   []
-  [energy_frac] # this guy maps from (strain, d) -> energy
+  [energy2] # this guy maps from d -> energy
     type = ComposedModel
-    models = 'degrade sed_frac cracked sum'
+    models = 'degrade cracked sed2 sum'
   []
-  [dpsidd]
+  [fracture]
     type = Normality
-    model = 'energy_frac'
+    model = 'energy2'
     function = 'state/psi'
-    from = 'state/d'
+    from = 'forces/d'
     to = 'state/dpsi_dd'
   []
-  # [d2psidd2]
-  #   type = Normality
-  #   model = 'dpsidd'
-  #   function = 'state/dpsi_dd'
-  #   from = 'state/d'
-  #   to = 'state/d2psi_dd2'
-  # []
-  # [model_frac]
-  #   type = ComposedModel
-  #   models = 'dpsidd d2psidd2'
-  #   additional_outputs = 'state/dpsi_dd'
-  # []
 []
