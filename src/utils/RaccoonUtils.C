@@ -39,6 +39,7 @@ spectralDecomposition(const ADRankTwoTensor & r2t)
   return eigvecs * eigvals_pos * eigvecs.transpose();
 }
 
+
 ADRankTwoTensor
 log(const ADRankTwoTensor & r2t)
 {

@@ -22,7 +22,7 @@ CrackGeometricFunction::validParams()
   params.suppressParameter<unsigned int>("derivative_order");
 
   params.addParam<MaterialPropertyName>("initial_derivative",
-                                        "xi",
+                                        "xi_n",
                                         "Name of the material to store the initial slope of the "
                                         "crack geometric function, $\\alpha(d=0)$");
 

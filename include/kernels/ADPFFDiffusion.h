@@ -23,6 +23,9 @@ protected:
   /// The normalization constant
   const ADMaterialProperty<Real> & _c0;
 
+  /// The normalization constant for the ATH functional
+  const ADMaterialProperty<Real> & _c1;
+
   /// The regularization length
   const ADMaterialProperty<Real> & _l;
 };

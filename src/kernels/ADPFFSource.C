@@ -29,5 +29,6 @@ ADPFFSource::ADPFFSource(const InputParameters & parameters)
 ADReal
 ADPFFSource::precomputeQpResidual()
 {
+  // std::cout << "dpsi_dd value " << raw_value(_dpsi_dd[_qp]) << std::endl;
   return _dpsi_dd[_qp];
 }

@@ -87,12 +87,12 @@ ADNucleationPhaseCalculator::computeQpProperties()
   {
     ADReal R = 0.0;
     unsigned int k = 0;
-    Real tol = 1e-16;
+    Real tol = 1e-14;
 
     // Starting the Newton-Raphson loop
     while (std::abs(R) > tol || k == 0)
     {
-      if (++k > 100)
+      if (++k > 1000)
       {
         std::cerr << "Max iterations reached.\n";
         break;
@@ -108,6 +108,8 @@ ADNucleationPhaseCalculator::computeQpProperties()
                _k[_qp] * _k[_qp] * _g[_qp] * std::exp(-_k[_qp] * _xi[_qp]) * _psi_n[_qp];
 
       _xi[_qp] = _xi[_qp] - (R / J);
+
+      // std::cout << "Residual, iter, nuc_phase " << raw_value(R) << " " << k << " " << raw_value(_xi[_qp]) << std::endl;
     }
   }
 }
