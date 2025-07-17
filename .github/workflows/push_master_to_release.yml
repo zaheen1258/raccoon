@@ -1,0 +1,21 @@
+name: Push master to release
+
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  checkout-and-merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.TRIGGER_WORKFLOW }}
+      - name: Merge master into release
+        run: |
+          git config user.name 'Gary Hu'
+          git config user.email '31555204+hugary1995@users.noreply.github.com'
+          git checkout release
+          git pull origin master
+          git push origin release
